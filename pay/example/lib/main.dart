@@ -17,6 +17,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:pay/pay.dart';
 
 import 'payment_configurations.dart' as payment_configurations;
+import 'chatbot_screen.dart';
+import 'pricing_screen.dart';
+import 'profile_screen.dart';
 
 void main() {
   runApp(const PayMaterialApp());
@@ -60,12 +63,26 @@ class PaySampleApp extends StatefulWidget {
 
 class _PaySampleAppState extends State<PaySampleApp> {
   late final Future<PaymentConfiguration> _googlePayConfigFuture;
+  int _selectedIndex = 0;
+
+  static const List<Widget> _widgetOptions = <Widget>[
+    ChatbotScreen(),
+    PricingScreen(),
+    ProfileScreen(),
+    TshirtShopWidget(), // Assuming TshirtShopWidget is the original content
+  ];
 
   @override
   void initState() {
     super.initState();
     _googlePayConfigFuture =
         PaymentConfiguration.fromAsset('default_google_pay_config.json');
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   void onGooglePayResult(paymentResult) {
@@ -82,80 +99,113 @@ class _PaySampleAppState extends State<PaySampleApp> {
       appBar: AppBar(
         title: const Text('T-shirt Shop'),
       ),
-      backgroundColor: Colors.white,
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: [
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 20),
-            child: const Image(
-              image: AssetImage('assets/images/ts_10_11019a.jpg'),
-              height: 350,
-            ),
-          ),
-          const Text(
-            'Amanda\'s Polo Shirt',
-            style: TextStyle(
-              fontSize: 20,
-              color: Color(0xff333333),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            '\$50.20',
-            style: TextStyle(
-              color: Color(0xff777777),
-              fontSize: 15,
-            ),
-          ),
-          const SizedBox(height: 15),
-          const Text(
-            'Description',
-            style: TextStyle(
-              fontSize: 15,
-              color: Color(0xff333333),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            'A versatile full-zip that you can wear all day long and even...',
-            style: TextStyle(
-              color: Color(0xff777777),
-              fontSize: 15,
-            ),
-          ),
-          // Example pay button configured using an asset
-          FutureBuilder<PaymentConfiguration>(
-              future: _googlePayConfigFuture,
-              builder: (context, snapshot) => snapshot.hasData
-                  ? GooglePayButton(
-                      paymentConfiguration: snapshot.data!,
-                      paymentItems: _paymentItems,
-                      type: GooglePayButtonType.buy,
-                      margin: const EdgeInsets.only(top: 15.0),
-                      onPaymentResult: onGooglePayResult,
-                      loadingIndicator: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    )
-                  : const SizedBox.shrink()),
-          // Example pay button configured using a string
-          ApplePayButton(
-            paymentConfiguration: payment_configurations.defaultApplePayConfig,
-            paymentItems: _paymentItems,
-            style: ApplePayButtonStyle.black,
-            type: ApplePayButtonType.buy,
-            margin: const EdgeInsets.only(top: 15.0),
-            onPaymentResult: onApplePayResult,
-            loadingIndicator: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-          const SizedBox(height: 15)
-        ],
+      body: Center(
+        child: _widgetOptions.elementAt(_selectedIndex),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat),
+            label: 'Chatbot',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.sell),
+            label: 'Pricing',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Shop',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.amber[800],
+        unselectedItemColor: Colors.grey,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+}
+
+// Assuming TshirtShopWidget is the original content of the body
+class TshirtShopWidget extends StatelessWidget {
+  const TshirtShopWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Replace with the original ListView content
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 20),
+          child: const Image(
+            image: AssetImage('assets/images/ts_10_11019a.jpg'),
+            height: 350,
+          ),
+        ),
+        const Text(
+          'Amanda\'s Polo Shirt',
+          style: TextStyle(
+            fontSize: 20,
+            color: Color(0xff333333),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 5),
+        const Text(
+          '\$50.20',
+          style: TextStyle(
+            color: Color(0xff777777),
+            fontSize: 15,
+          ),
+        ),
+        const SizedBox(height: 15),
+        const Text(
+          'Description',
+          style: TextStyle(
+            fontSize: 15,
+            color: Color(0xff333333),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 5),
+        const Text(
+          'A versatile full-zip that you can wear all day long and even...',
+          style: TextStyle(
+            color: Color(0xff777777),
+            fontSize: 15,
+          ),
+        ),
+        // Example pay button configured using an asset
+        FutureBuilder<PaymentConfiguration>(
+            future: PaymentConfiguration.fromAsset('default_google_pay_config.json'), // Re-initialize or pass from parent
+            builder: (context, snapshot) => snapshot.hasData
+                ? GooglePayButton(
+                    paymentConfiguration: snapshot.data!,
+                    paymentItems: _paymentItems,
+                    type: GooglePayButtonType.buy,
+                    margin: const EdgeInsets.only(top: 15.0),
+                    onPaymentResult: (result) => debugPrint(result.toString()), // Simplified
+                  )
+                : const SizedBox.shrink()),
+        // Example pay button configured using a string
+        ApplePayButton(
+          paymentConfiguration: payment_configurations.defaultApplePayConfig,
+          paymentItems: _paymentItems,
+          style: ApplePayButtonStyle.black,
+          type: ApplePayButtonType.buy,
+          margin: const EdgeInsets.only(top: 15.0),
+          onPaymentResult: (result) => debugPrint(result.toString()), // Simplified
+          loadingIndicator: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+        const SizedBox(height: 15)
+      ],
     );
   }
 }
